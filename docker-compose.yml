@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: restaurant-agent-ui
+    ports:
+      - "3000:8080"
+    volumes:
+      - ./openwebui:/app/backend/data
+    environment:
+      - WEBUI_AUTH=false  # Authentication disabled for development
+      - ENABLE_OLLAMA_API=false
+      - ENABLE_OPENAI_API=true
+    restart: unless-stopped
+
+networks:
+  default:
+    name: restaurant-agent-network
