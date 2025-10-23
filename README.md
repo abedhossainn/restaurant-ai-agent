@@ -31,7 +31,7 @@ An intelligent AI agent that finds restaurants based on complex natural language
 ### Steps
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/restaurant-ai-agent.git
+   git clone https://github.com/abehossainn/restaurant-ai-agent.git
    cd restaurant-ai-agent
    ```
 2. **Start the application**
