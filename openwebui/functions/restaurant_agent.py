@@ -26,7 +26,7 @@ class Pipe:
             description="Google Gemini API key for NLP processing"
         )
         GEMINI_MODEL: str = Field(
-            default="gemini-1.5-flash",
+            default="gemini-2.5-flash",
             description="Gemini model to use"
         )
         CSV_PATH: str = Field(
