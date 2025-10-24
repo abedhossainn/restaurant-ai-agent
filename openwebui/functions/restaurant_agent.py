@@ -1,8 +1,6 @@
 """
 title: Restaurant Recommendation Agent
-author: Your Name
-version: 0.1.0
-license: MIT
+author: Syed Abed Hossain
 description: AI agent that finds restaurants based on complex queries using search algorithms and constraint satisfaction
 requirements: langchain-google-genai==2.0.5, pandas==2.2.0
 """
@@ -87,7 +85,7 @@ class Pipe:
         await __event_emitter__({
             "type": "status",
             "data": {
-                "description": "🤖 Agent initializing...",
+                "description": "Agent initializing...",
                 "done": False
             }
         })
@@ -98,7 +96,7 @@ class Pipe:
         # === STATE 2: NLP PARSING ===
         await __event_emitter__({
             "type": "status",
-            "data": {"description": "🧠 Parsing query with Gemini...", "done": False}
+            "data": {"description": "Parsing query with Gemini...", "done": False}
         })
         
         self.log_event("PARSING", "Extracting parameters using Gemini")
@@ -108,7 +106,7 @@ class Pipe:
         # === STATE 3: SEARCH ===
         await __event_emitter__({
             "type": "status",
-            "data": {"description": "🔍 Searching restaurant database...", "done": False}
+            "data": {"description": "Searching restaurant database...", "done": False}
         })
         
         self.log_event("SEARCHING", "Loading restaurant database")
@@ -118,7 +116,7 @@ class Pipe:
         # === STATE 4: CONSTRAINT SATISFACTION ===
         await __event_emitter__({
             "type": "status",
-            "data": {"description": "⚙️ Applying constraints...", "done": False}
+            "data": {"description": "Applying constraints...", "done": False}
         })
         
         self.log_event("FILTERING", "Beginning constraint satisfaction process")
@@ -132,11 +130,11 @@ class Pipe:
         # === STATE 5: RANKING ===
         await __event_emitter__({
             "type": "status",
-            "data": {"description": "📊 Ranking results...", "done": False}
+            "data": {"description": "Ranking results...", "done": False}
         })
         
         self.log_event("RANKING", "Calculating relevance scores")
-        ranked = self.rank_restaurants(filtered, params)
+        ranked = self.rank_restaurants(filtered)
         self.log_event("RANKING", "Ranking complete", 
                       {"top_restaurant": ranked[0]["name"], 
                        "top_score": ranked[0].get("match_score", 0)})
@@ -144,7 +142,7 @@ class Pipe:
         # === STATE 6: EXPLANATION GENERATION ===
         await __event_emitter__({
             "type": "status",
-            "data": {"description": "✍️ Generating explanation...", "done": False}
+            "data": {"description": "Generating explanation...", "done": False}
         })
         
         self.log_event("EXPLAINING", "Generating explanation with Gemini")
@@ -157,11 +155,11 @@ class Pipe:
         
         await __event_emitter__({
             "type": "status",
-            "data": {"description": "✅ Complete!", "done": True}
+            "data": {"description": "Complete!", "done": True}
         })
         
         # Format final response
-        return self.format_response(ranked[:5], explanation, params)
+        return self.format_response(explanation)
     
     async def extract_parameters(self, query: str) -> Dict:
         """Extract structured parameters from natural language query using Gemini"""
@@ -205,12 +203,12 @@ Return only the JSON object, nothing else."""
             self.log_event("ERROR", f"Parameter extraction failed: {str(e)}")
             # Return default params
             return {
-                "cuisine": "Turkish",
-                "location": "Downtown Baltimore",
-                "price_max": 65,
-                "party_size": 2,
-                "datetime": "Thursday 7:30 PM",
-                "special_requests": ["window seating", "view"]
+                "cuisine": None,
+                "location": None,
+                "price_max": None,
+                "party_size": None,
+                "datetime": None,
+                "special_requests": []
             }
     
     def load_restaurants(self) -> List[Dict]:
@@ -269,19 +267,27 @@ Return only the JSON object, nothing else."""
                               {"remaining": len(filtered)})
             
             # Check for view preferences
-            view_requests = [req for req in special_requests 
-                           if "view" in req.lower() or "garden" in req.lower() 
-                           or "street" in req.lower()]
+            view_requests = [
+                req for req in special_requests
+                if "view" in req.lower() or "garden" in req.lower() or "street" in req.lower() or "city" in req.lower()
+            ]
             if view_requests:
-                filtered = [r for r in filtered 
-                           if any(view_word in r.get("view_type", "").lower() 
-                                 for view_word in ["garden", "street", "harbor"])]
-                self.log_event("FILTERING", "View preference filter result",
-                              {"remaining": len(filtered)})
+                filtered = [
+                    r for r in filtered
+                    if any(
+                        view_word in r.get("view_type", "").lower()
+                        for view_word in ["garden", "street", "harbor", "city"]
+                    )
+                ]
+                self.log_event(
+                    "FILTERING",
+                    "View preference filter result",
+                    {"remaining": len(filtered)}
+                )
         
         return filtered
     
-    def rank_restaurants(self, restaurants: List[Dict], params: Dict) -> List[Dict]:
+    def rank_restaurants(self, restaurants: List[Dict]) -> List[Dict]:
         """Rank restaurants by relevance score"""
         
         for restaurant in restaurants:
@@ -303,7 +309,7 @@ Return only the JSON object, nothing else."""
             score -= price_penalty
             
             # Factor 4: View bonus
-            if restaurant.get("view_type") in ["garden", "street", "harbor"]:
+            if restaurant.get("view_type") in ["garden", "street", "harbor", "city"]:
                 score += 15
                 self.log_event("RANKING", f"Scoring {restaurant['name']}: view bonus",
                               {"view_type": restaurant.get("view_type"), "score_add": 15})
@@ -345,7 +351,7 @@ Format with nice markdown (bold names, bullet points for features)."""
         try:
             response = await self.llm.ainvoke(prompt)
             return response.content
-        except Exception as e:
+        except Exception:
             return self.format_fallback_explanation(restaurants, params)
     
     def format_fallback_explanation(self, restaurants: List[Dict], params: Dict) -> str:
@@ -372,6 +378,5 @@ Format with nice markdown (bold names, bullet points for features)."""
 
 Try relaxing some constraints or broadening your search area."""
     
-    def format_response(self, restaurants: List[Dict], explanation: str, params: Dict) -> str:
-        
+    def format_response(self, explanation: str) -> str:
         return explanation
