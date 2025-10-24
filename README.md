@@ -2,6 +2,17 @@
 
 An intelligent AI agent that finds restaurants based on natural language queries using search algorithms, constraint satisfaction, and deterministic planning.
 
+## Agent Architecture
+
+This agent combines goal based planning, constraint satisfaction, and utility based ranking:
+
+- Goal based pipeline: A deterministic 7-state flow (INIT > PARSING > SEARCHING > FILTERING > RANKING > EXPLAINING > COMPLETE) drives the agent to the goal of returning the best matching restaurants.
+- NLP parameter extraction: Google Gemini parses the user's natural language into structured parameters (cuisine, location, price, party size, special requests).
+- Constraint Satisfaction (hard filters): Applies boolean constraints to the dataset (exact cuisine match, location substring match, price threshold, features like window seating or views).
+- Utility based ranking: After filtering, candidates are scored with a weighted function: high rating boosts, distance and higher prices penalize, and view features add a bonus. Results are sorted by total utility.
+- Explanation generation: Gemini produces a concise, user facing explanation describing why the top results match the query.
+- Failure handling: If no rows remain after filtering or the CSV cannot be loaded, the agent returns a “no results” message.
+
 - **Multi-constraint filtering** - Location, cuisine, price, features (window seating, views)
 
 An intelligent AI agent that finds restaurants based on complex natural language queries using search algorithms, constraint satisfaction, and deterministic planning.- **Weighted relevance scoring** - Ranks results by rating, distance, price, and special features
@@ -31,7 +42,7 @@ An intelligent AI agent that finds restaurants based on complex natural language
 ### Steps
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/abehossainn/restaurant-ai-agent.git
+   git clone https://github.com/abedhossainn/restaurant-ai-agent.git
    cd restaurant-ai-agent
    ```
 2. **Start the application**

@@ -1,4 +1,4 @@
-version: '3.8'
+# version: '3.8'
 
 services:
   openwebui:
@@ -16,4 +16,4 @@ services:
 
 networks:
   default:
-    name: restaurant-agent-network
+    # name: restaurant-agent-network
